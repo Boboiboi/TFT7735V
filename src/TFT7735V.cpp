@@ -1,17 +1,17 @@
-#include "TFT7789V.h"
+#include "TFT7735V.h"
 #include <cstring>
 #include <algorithm>
 
-static const char* TAG = "TFT7789V";
+static const char* TAG = "TFT7735V";
 
 // Pre-transfer callback for setting DC pin
 void IRAM_ATTR spi_pre_transfer_callback(spi_transaction_t *t) {
-    TFT7789V* tft = (TFT7789V*)t->user;
+    TFT7735V* tft = (TFT7735V*)t->user;
     int dc = (int)t->user;
     gpio_set_level((gpio_num_t)dc, (t->user != nullptr) ? 1 : 0);
 }
 
-TFT7789V::TFT7789V(gpio_num_t mosi, gpio_num_t sclk, gpio_num_t cs, 
+TFT7735V::TFT7735V(gpio_num_t mosi, gpio_num_t sclk, gpio_num_t cs, 
                    gpio_num_t dc, gpio_num_t reset, gpio_num_t bl) {
     pins.mosi = mosi;
     pins.sclk = sclk;
@@ -74,13 +74,13 @@ TFT7789V::TFT7789V(gpio_num_t mosi, gpio_num_t sclk, gpio_num_t cs,
     force_full_redraw = false;
 }
 
-TFT7789V::~TFT7789V() {
+TFT7735V::~TFT7735V() {
     end();
     free_framebuffer();
     free_double_buffering();
 }
 
-bool TFT7789V::begin(uint32_t freq_hz) {
+bool TFT7735V::begin(uint32_t freq_hz) {
     if (initialized) {
         ESP_LOGW(TAG, "Already initialized");
         return true;
@@ -91,7 +91,7 @@ bool TFT7789V::begin(uint32_t freq_hz) {
         spi_frequency = freq_hz;
     }
     
-    ESP_LOGI(TAG, "Initializing TFT7789V display with SPI freq: %lu Hz", spi_frequency);
+    ESP_LOGI(TAG, "Initializing TFT7735V display with SPI freq: %lu Hz", spi_frequency);
     
     // Configure GPIO pins
     gpio_config_t io_conf = {};
@@ -176,11 +176,11 @@ bool TFT7789V::begin(uint32_t freq_hz) {
     ESP_LOGI(TAG, "- Total SRAM usage: %d KB", (SRAM_BUFFER_SIZE * 2) / 1024);
     
     initialized = true;
-    ESP_LOGI(TAG, "TFT7789V initialized successfully with high-performance mode");
+    ESP_LOGI(TAG, "TFT7735V initialized successfully with high-performance mode");
     return true;
 }
 
-void TFT7789V::end() {
+void TFT7735V::end() {
     if (!initialized) return;
     
     // Clean up framebuffer system first
@@ -203,10 +203,10 @@ void TFT7789V::end() {
     }
     
     initialized = false;
-    ESP_LOGI(TAG, "TFT7789V deinitialized");
+    ESP_LOGI(TAG, "TFT7735V deinitialized");
 }
 
-void TFT7789V::hardware_reset() {
+void TFT7735V::hardware_reset() {
     if (reset_pin != GPIO_NUM_NC) {
         gpio_set_level(reset_pin, 0);
         vTaskDelay(pdMS_TO_TICKS(10));
@@ -215,7 +215,7 @@ void TFT7789V::hardware_reset() {
     }
 }
 
-void TFT7789V::write_command(uint8_t cmd) {
+void TFT7735V::write_command(uint8_t cmd) {
     gpio_set_level(dc_pin, 0); // Command mode
     
     spi_transaction_t t = {};
@@ -229,7 +229,7 @@ void TFT7789V::write_command(uint8_t cmd) {
     }
 }
 
-void TFT7789V::write_data(uint8_t data) {
+void TFT7735V::write_data(uint8_t data) {
     gpio_set_level(dc_pin, 1); // Data mode
     
     spi_transaction_t t = {};
@@ -243,7 +243,7 @@ void TFT7789V::write_data(uint8_t data) {
     }
 }
 
-void TFT7789V::write_data16(uint16_t data) {
+void TFT7735V::write_data16(uint16_t data) {
     gpio_set_level(dc_pin, 1); // Data mode
     
     spi_transaction_t t = {};
@@ -258,7 +258,7 @@ void TFT7789V::write_data16(uint16_t data) {
     }
 }
 
-void TFT7789V::write_data_buffer(const uint8_t* data, size_t len) {
+void TFT7735V::write_data_buffer(const uint8_t* data, size_t len) {
     if (len == 0) return;
     
     gpio_set_level(dc_pin, 1); // Data mode
@@ -273,7 +273,7 @@ void TFT7789V::write_data_buffer(const uint8_t* data, size_t len) {
     }
 }
 
-void TFT7789V::init_sequence() {
+void TFT7735V::init_sequence() {
     ESP_LOGI(TAG, "Starting display initialization sequence");
     
     // Software reset
@@ -317,25 +317,25 @@ void TFT7789V::init_sequence() {
     ESP_LOGI(TAG, "Display initialization sequence completed");
 }
 
-void TFT7789V::display_on() {
+void TFT7735V::display_on() {
     write_command(ST7735_DISPON);
 }
 
-void TFT7789V::display_off() {
+void TFT7735V::display_off() {
     write_command(ST7735_DISPOFF);
 }
 
-void TFT7789V::set_backlight(bool state) {
+void TFT7735V::set_backlight(bool state) {
     if (bl_pin != GPIO_NUM_NC) {
         gpio_set_level(bl_pin, state ? 1 : 0);
     }
 }
 
-void TFT7789V::invert_display(bool invert) {
+void TFT7735V::invert_display(bool invert) {
     write_command(invert ? ST7735_INVON : ST7735_INVOFF);
 }
 
-void TFT7789V::set_rotation(uint8_t rotation) {
+void TFT7735V::set_rotation(uint8_t rotation) {
     this->rotation = rotation % 4;
     uint8_t madctl = 0;
     
@@ -373,7 +373,7 @@ void TFT7789V::set_rotation(uint8_t rotation) {
     set_addr_window(0, 0, width - 1, height - 1);
 }
 
-void TFT7789V::set_addr_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {
+void TFT7735V::set_addr_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {
     // Column address set
     uint16_t sx0 = x0 + (x_offset >= 0 ? (uint16_t)x_offset : 0);
     uint16_t sy0 = y0 + (y_offset >= 0 ? (uint16_t)y_offset : 0);
@@ -397,17 +397,17 @@ void TFT7789V::set_addr_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y
     write_command(ST7735_RAMWR);
 }
 
-void TFT7789V::setOffsets(int16_t x, int16_t y) {
+void TFT7735V::setOffsets(int16_t x, int16_t y) {
     x_offset = x;
     y_offset = y;
 }
 
-void TFT7789V::getOffsets(int16_t &x, int16_t &y) const {
+void TFT7735V::getOffsets(int16_t &x, int16_t &y) const {
     x = x_offset;
     y = y_offset;
 }
 
-void TFT7789V::draw_pixel(uint16_t x, uint16_t y, uint16_t color) {
+void TFT7735V::draw_pixel(uint16_t x, uint16_t y, uint16_t color) {
     if (framebuffer_enabled) {
         fb_draw_pixel(x, y, color);
     } else {
@@ -419,7 +419,7 @@ void TFT7789V::draw_pixel(uint16_t x, uint16_t y, uint16_t color) {
     }
 }
 
-void TFT7789V::fill_screen(uint16_t color) {
+void TFT7735V::fill_screen(uint16_t color) {
     if (framebuffer_enabled) {
         fb_fill_screen(color);
     } else {
@@ -428,7 +428,7 @@ void TFT7789V::fill_screen(uint16_t color) {
     }
 }
 
-void TFT7789V::fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
+void TFT7735V::fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
     if (framebuffer_enabled) {
         fb_fill_rect(x, y, w, h, color);
     } else {
@@ -444,7 +444,7 @@ void TFT7789V::fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_
     }
 }
 
-void TFT7789V::push_color(uint16_t color, uint32_t len) {
+void TFT7735V::push_color(uint16_t color, uint32_t len) {
     gpio_set_level(dc_pin, 1); // Data mode
     
     // Create buffer for efficient transfer
@@ -473,7 +473,7 @@ void TFT7789V::push_color(uint16_t color, uint32_t len) {
     }
 }
 
-void TFT7789V::push_colors(const uint16_t* colors, uint32_t len) {
+void TFT7735V::push_colors(const uint16_t* colors, uint32_t len) {
     gpio_set_level(dc_pin, 1); // Data mode
     
     // Convert to big-endian and send
@@ -506,7 +506,7 @@ void TFT7789V::push_colors(const uint16_t* colors, uint32_t len) {
     }
 }
 
-void TFT7789V::draw_fast_vline(uint16_t x, uint16_t y, uint16_t h, uint16_t color) {
+void TFT7735V::draw_fast_vline(uint16_t x, uint16_t y, uint16_t h, uint16_t color) {
     if (framebuffer_enabled) {
         fb_draw_fast_vline(x, y, h, color);
     } else {
@@ -514,7 +514,7 @@ void TFT7789V::draw_fast_vline(uint16_t x, uint16_t y, uint16_t h, uint16_t colo
     }
 }
 
-void TFT7789V::draw_fast_hline(uint16_t x, uint16_t y, uint16_t w, uint16_t color) {
+void TFT7735V::draw_fast_hline(uint16_t x, uint16_t y, uint16_t w, uint16_t color) {
     if (framebuffer_enabled) {
         fb_draw_fast_hline(x, y, w, color);
     } else {
@@ -522,36 +522,36 @@ void TFT7789V::draw_fast_hline(uint16_t x, uint16_t y, uint16_t w, uint16_t colo
     }
 }
 
-uint16_t TFT7789V::color565(uint8_t r, uint8_t g, uint8_t b) {
+uint16_t TFT7735V::color565(uint8_t r, uint8_t g, uint8_t b) {
     return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
 }
 
 // Text rendering functions implementation
-void TFT7789V::setCursor(uint16_t x, uint16_t y) {
+void TFT7735V::setCursor(uint16_t x, uint16_t y) {
     cursor_x = x;
     cursor_y = y;
 }
 
-void TFT7789V::setTextColor(uint16_t color) {
+void TFT7735V::setTextColor(uint16_t color) {
     text_color = color;
     text_has_bg = false;
 }
 
-void TFT7789V::setTextColor(uint16_t color, uint16_t bg) {
+void TFT7735V::setTextColor(uint16_t color, uint16_t bg) {
     text_color = color;
     text_bg_color = bg;
     text_has_bg = true;
 }
 
-void TFT7789V::setTextSize(uint8_t size) {
+void TFT7735V::setTextSize(uint8_t size) {
     text_size = (size > 0) ? size : 1;
 }
 
-void TFT7789V::setTextWrap(bool wrap) {
+void TFT7735V::setTextWrap(bool wrap) {
     text_wrap = wrap;
 }
 
-void TFT7789V::drawChar(uint16_t x, uint16_t y, unsigned char c, uint16_t color, uint16_t bg, uint8_t size) {
+void TFT7735V::drawChar(uint16_t x, uint16_t y, unsigned char c, uint16_t color, uint16_t bg, uint8_t size) {
     if (framebuffer_enabled) {
         fb_draw_char(x, y, c, color, bg, size, text_has_bg);
     } else {
@@ -584,7 +584,7 @@ void TFT7789V::drawChar(uint16_t x, uint16_t y, unsigned char c, uint16_t color,
     }
 }
 
-void TFT7789V::drawText(uint16_t x, uint16_t y, const char* text, uint16_t color) {
+void TFT7735V::drawText(uint16_t x, uint16_t y, const char* text, uint16_t color) {
     while (*text) {
         drawChar(x, y, *text, color, text_bg_color, 1);
         x += FONT8X8_WIDTH;
@@ -592,7 +592,7 @@ void TFT7789V::drawText(uint16_t x, uint16_t y, const char* text, uint16_t color
     }
 }
 
-void TFT7789V::drawText(uint16_t x, uint16_t y, const char* text, uint16_t color, uint16_t bg) {
+void TFT7735V::drawText(uint16_t x, uint16_t y, const char* text, uint16_t color, uint16_t bg) {
     while (*text) {
         drawChar(x, y, *text, color, bg, 1);
         x += FONT8X8_WIDTH;
@@ -600,7 +600,7 @@ void TFT7789V::drawText(uint16_t x, uint16_t y, const char* text, uint16_t color
     }
 }
 
-void TFT7789V::drawText(uint16_t x, uint16_t y, const char* text, uint16_t color, uint16_t bg, uint8_t size) {
+void TFT7735V::drawText(uint16_t x, uint16_t y, const char* text, uint16_t color, uint16_t bg, uint8_t size) {
     while (*text) {
         drawChar(x, y, *text, color, bg, size);
         x += FONT8X8_WIDTH * size;
@@ -608,7 +608,7 @@ void TFT7789V::drawText(uint16_t x, uint16_t y, const char* text, uint16_t color
     }
 }
 
-size_t TFT7789V::write(uint8_t c) {
+size_t TFT7735V::write(uint8_t c) {
     if (c == '\n') {
         cursor_y += FONT8X8_HEIGHT * text_size;
         cursor_x = 0;
@@ -627,7 +627,7 @@ size_t TFT7789V::write(uint8_t c) {
     return 1;
 }
 
-size_t TFT7789V::print(const char* str) {
+size_t TFT7735V::print(const char* str) {
     size_t n = 0;
     while (*str) {
         n += write(*str++);
@@ -635,46 +635,46 @@ size_t TFT7789V::print(const char* str) {
     return n;
 }
 
-size_t TFT7789V::print(int num) {
+size_t TFT7735V::print(int num) {
     char buffer[12]; // Enough for 32-bit int
     sprintf(buffer, "%d", num);
     return print(buffer);
 }
 
-size_t TFT7789V::print(float num, int decimals) {
+size_t TFT7735V::print(float num, int decimals) {
     char buffer[32];
     sprintf(buffer, "%.*f", decimals, num);
     return print(buffer);
 }
 
-size_t TFT7789V::println(const char* str) {
+size_t TFT7735V::println(const char* str) {
     size_t n = print(str);
     n += write('\n');
     return n;
 }
 
-size_t TFT7789V::println(int num) {
+size_t TFT7735V::println(int num) {
     size_t n = print(num);
     n += write('\n');
     return n;
 }
 
-size_t TFT7789V::println(float num, int decimals) {
+size_t TFT7735V::println(float num, int decimals) {
     size_t n = print(num, decimals);
     n += write('\n');
     return n;
 }
 
-uint16_t TFT7789V::getTextWidth(const char* text, uint8_t size) {
+uint16_t TFT7735V::getTextWidth(const char* text, uint8_t size) {
     return strlen(text) * FONT8X8_WIDTH * size;
 }
 
-uint16_t TFT7789V::getTextHeight(uint8_t size) {
+uint16_t TFT7735V::getTextHeight(uint8_t size) {
     return FONT8X8_HEIGHT * size;
 }
 
 // Extended drawing functions (Adafruit/LovyanGFX compatible)
-void TFT7789V::drawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color) {
+void TFT7735V::drawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color) {
     if (framebuffer_enabled) {
         fb_draw_line(x0, y0, x1, y1, color);
     } else {
@@ -703,15 +703,15 @@ void TFT7789V::drawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint
     }
 }
 
-void TFT7789V::drawFastVLine(uint16_t x, uint16_t y, uint16_t h, uint16_t color) {
+void TFT7735V::drawFastVLine(uint16_t x, uint16_t y, uint16_t h, uint16_t color) {
     draw_fast_vline(x, y, h, color);
 }
 
-void TFT7789V::drawFastHLine(uint16_t x, uint16_t y, uint16_t w, uint16_t color) {
+void TFT7735V::drawFastHLine(uint16_t x, uint16_t y, uint16_t w, uint16_t color) {
     draw_fast_hline(x, y, w, color);
 }
 
-void TFT7789V::drawRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
+void TFT7735V::drawRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
     if (framebuffer_enabled) {
         fb_draw_rect(x, y, w, h, color);
     } else {
@@ -726,11 +726,11 @@ void TFT7789V::drawRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t
     }
 }
 
-void TFT7789V::fillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
+void TFT7735V::fillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
     fill_rect(x, y, w, h, color);
 }
 
-void TFT7789V::drawCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color) {
+void TFT7735V::drawCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color) {
     if (framebuffer_enabled) {
         fb_draw_circle(x0, y0, r, color);
     } else {
@@ -761,7 +761,7 @@ void TFT7789V::drawCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color) 
     }
 }
 
-void TFT7789V::fillCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color) {
+void TFT7735V::fillCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color) {
     if (framebuffer_enabled) {
         fb_fill_circle(x0, y0, r, color);
     } else {
@@ -788,7 +788,7 @@ void TFT7789V::fillCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color) 
     }
 }
 
-void TFT7789V::drawBitmap(uint16_t x, uint16_t y, const uint8_t *bitmap, uint16_t w, uint16_t h, uint16_t color) {
+void TFT7735V::drawBitmap(uint16_t x, uint16_t y, const uint8_t *bitmap, uint16_t w, uint16_t h, uint16_t color) {
     if (framebuffer_enabled) {
         fb_draw_bitmap(x, y, bitmap, w, h, color, 0, false);
     } else {
@@ -805,7 +805,7 @@ void TFT7789V::drawBitmap(uint16_t x, uint16_t y, const uint8_t *bitmap, uint16_
     }
 }
 
-void TFT7789V::drawBitmap(uint16_t x, uint16_t y, const uint8_t *bitmap, uint16_t w, uint16_t h, uint16_t color, uint16_t bg) {
+void TFT7735V::drawBitmap(uint16_t x, uint16_t y, const uint8_t *bitmap, uint16_t w, uint16_t h, uint16_t color, uint16_t bg) {
     if (framebuffer_enabled) {
         fb_draw_bitmap(x, y, bitmap, w, h, color, bg, true);
     } else {
@@ -821,7 +821,7 @@ void TFT7789V::drawBitmap(uint16_t x, uint16_t y, const uint8_t *bitmap, uint16_
     }
 }
 
-void TFT7789V::drawRGBBitmap(uint16_t x, uint16_t y, const uint16_t *bitmap, uint16_t w, uint16_t h) {
+void TFT7735V::drawRGBBitmap(uint16_t x, uint16_t y, const uint16_t *bitmap, uint16_t w, uint16_t h) {
     if (framebuffer_enabled) {
         fb_draw_rgb_bitmap(x, y, bitmap, nullptr, w, h, false);
     } else {
@@ -835,7 +835,7 @@ void TFT7789V::drawRGBBitmap(uint16_t x, uint16_t y, const uint16_t *bitmap, uin
     }
 }
 
-void TFT7789V::drawRGBBitmap(uint16_t x, uint16_t y, const uint16_t *bitmap, const uint8_t *mask, uint16_t w, uint16_t h) {
+void TFT7735V::drawRGBBitmap(uint16_t x, uint16_t y, const uint16_t *bitmap, const uint8_t *mask, uint16_t w, uint16_t h) {
     if (framebuffer_enabled) {
         fb_draw_rgb_bitmap(x, y, bitmap, mask, w, h, true);
     } else {
@@ -854,7 +854,7 @@ void TFT7789V::drawRGBBitmap(uint16_t x, uint16_t y, const uint16_t *bitmap, con
 }
 
 // Advanced configuration functions
-void TFT7789V::setSPISpeed(uint32_t hz) {
+void TFT7735V::setSPISpeed(uint32_t hz) {
     if (hz == 0) {
         ESP_LOGW(TAG, "Invalid SPI speed, ignoring");
         return;
@@ -869,7 +869,7 @@ void TFT7789V::setSPISpeed(uint32_t hz) {
     }
 }
 
-void TFT7789V::setBrightness(uint8_t level) {
+void TFT7735V::setBrightness(uint8_t level) {
     brightness_level = level;
     ESP_LOGI(TAG, "Brightness set to: %d/255", level);
     
@@ -879,33 +879,33 @@ void TFT7789V::setBrightness(uint8_t level) {
     }
 }
 
-void TFT7789V::setRotation(uint8_t r) {
+void TFT7735V::setRotation(uint8_t r) {
     set_rotation(r); // Use existing implementation
 }
 
 // Configuration getters
-uint32_t TFT7789V::getSPISpeed() const {
+uint32_t TFT7735V::getSPISpeed() const {
     return spi_frequency;
 }
 
-uint8_t TFT7789V::getBrightness() const {
+uint8_t TFT7735V::getBrightness() const {
     return brightness_level;
 }
 
-uint8_t TFT7789V::getRotation() const {
+uint8_t TFT7735V::getRotation() const {
     return rotation;
 }
 
-uint16_t TFT7789V::getWidth() const {
+uint16_t TFT7735V::getWidth() const {
     return width;
 }
 
-uint16_t TFT7789V::getHeight() const {
+uint16_t TFT7735V::getHeight() const {
     return height;
 }
 
 // Private helper functions
-void TFT7789V::init_pwm() {
+void TFT7735V::init_pwm() {
     if (bl_pin == GPIO_NUM_NC || pwm_initialized) {
         return;
     }
@@ -959,7 +959,7 @@ void TFT7789V::init_pwm() {
     ESP_LOGI(TAG, "PWM backlight control initialized");
 }
 
-void TFT7789V::apply_brightness() {
+void TFT7735V::apply_brightness() {
     if (bl_pin == GPIO_NUM_NC) {
         return;
     }
@@ -978,7 +978,7 @@ void TFT7789V::apply_brightness() {
     }
 }
 
-void TFT7789V::update_spi_speed() {
+void TFT7735V::update_spi_speed() {
     if (!initialized || !spi_device) {
         return;
     }
@@ -1014,7 +1014,7 @@ void TFT7789V::update_spi_speed() {
 }
 
 // Framebuffer methods
-bool TFT7789V::init_framebuffer() {
+bool TFT7735V::init_framebuffer() {
     if (framebuffer_a != nullptr || framebuffer_b != nullptr || framebuffer_c != nullptr) {
         ESP_LOGW(TAG, "Triple framebuffers already initialized");
         return true;
@@ -1060,7 +1060,7 @@ bool TFT7789V::init_framebuffer() {
     return true;
 }
 
-void TFT7789V::free_framebuffer() {
+void TFT7735V::free_framebuffer() {
     if (framebuffer_a != nullptr) {
         heap_caps_free(framebuffer_a);
         framebuffer_a = nullptr;
@@ -1078,7 +1078,7 @@ void TFT7789V::free_framebuffer() {
     ESP_LOGI(TAG, "Triple framebuffers freed");
 }
 
-bool TFT7789V::enableFramebuffer() {
+bool TFT7735V::enableFramebuffer() {
     if (framebuffer_enabled) {
         ESP_LOGW(TAG, "Framebuffer already enabled");
         return true;
@@ -1098,17 +1098,17 @@ bool TFT7789V::enableFramebuffer() {
     return true;
 }
 
-void TFT7789V::disableFramebuffer() {
+void TFT7735V::disableFramebuffer() {
     framebuffer_enabled = false;
     free_framebuffer();
     ESP_LOGI(TAG, "Framebuffer mode disabled");
 }
 
-bool TFT7789V::isFramebufferEnabled() const {
+bool TFT7735V::isFramebufferEnabled() const {
     return framebuffer_enabled;
 }
 
-void TFT7789V::display() {
+void TFT7735V::display() {
     if (!framebuffer_enabled || current_framebuffer == nullptr) {
         ESP_LOGW(TAG, "Framebuffer not enabled or not allocated");
         return;
@@ -1205,7 +1205,7 @@ void TFT7789V::display() {
 }
 
 // Framebuffer drawing functions
-void TFT7789V::fb_draw_pixel(uint16_t x, uint16_t y, uint16_t color) {
+void TFT7735V::fb_draw_pixel(uint16_t x, uint16_t y, uint16_t color) {
     if (x >= width || y >= height || current_framebuffer == nullptr) {
         return;
     }
@@ -1216,7 +1216,7 @@ void TFT7789V::fb_draw_pixel(uint16_t x, uint16_t y, uint16_t color) {
     expand_dirty_rect(x, y, 1, 1);
 }
 
-void TFT7789V::fb_fill_screen(uint16_t color) {
+void TFT7735V::fb_fill_screen(uint16_t color) {
     if (current_framebuffer == nullptr) return;
     
     for (size_t i = 0; i < (width * height); i++) {
@@ -1227,7 +1227,7 @@ void TFT7789V::fb_fill_screen(uint16_t color) {
     expand_dirty_rect(0, 0, width, height);
 }
 
-void TFT7789V::fb_fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
+void TFT7735V::fb_fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
     if (current_framebuffer == nullptr) return;
     if (x >= width || y >= height) return;
     
@@ -1245,16 +1245,16 @@ void TFT7789V::fb_fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint
     expand_dirty_rect(x, y, w, h);
 }
 
-void TFT7789V::fb_draw_fast_hline(uint16_t x, uint16_t y, uint16_t w, uint16_t color) {
+void TFT7735V::fb_draw_fast_hline(uint16_t x, uint16_t y, uint16_t w, uint16_t color) {
     fb_fill_rect(x, y, w, 1, color);
 }
 
-void TFT7789V::fb_draw_fast_vline(uint16_t x, uint16_t y, uint16_t h, uint16_t color) {
+void TFT7735V::fb_draw_fast_vline(uint16_t x, uint16_t y, uint16_t h, uint16_t color) {
     fb_fill_rect(x, y, 1, h, color);
 }
 
 // New framebuffer drawing implementations
-void TFT7789V::fb_draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color) {
+void TFT7735V::fb_draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color) {
     if (current_framebuffer == nullptr) return;
     
     // Bresenham line algorithm for framebuffer
@@ -1293,7 +1293,7 @@ void TFT7789V::fb_draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, 
     }
 }
 
-void TFT7789V::fb_draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
+void TFT7735V::fb_draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
     if (current_framebuffer == nullptr || w == 0 || h == 0) return;
     
     // Draw rectangle outline using fast lines
@@ -1305,7 +1305,7 @@ void TFT7789V::fb_draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint
     }
 }
 
-void TFT7789V::fb_draw_circle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color) {
+void TFT7735V::fb_draw_circle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color) {
     if (current_framebuffer == nullptr) return;
     
     // Bresenham circle algorithm
@@ -1342,7 +1342,7 @@ void TFT7789V::fb_draw_circle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t col
     expand_dirty_rect(circle_x, circle_y, circle_w, circle_h);
 }
 
-void TFT7789V::fb_fill_circle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color) {
+void TFT7735V::fb_fill_circle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color) {
     if (current_framebuffer == nullptr) return;
     
     // Filled circle using horizontal lines
@@ -1402,7 +1402,7 @@ void TFT7789V::fb_fill_circle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t col
     expand_dirty_rect(circle_x, circle_y, circle_w, circle_h);
 }
 
-void TFT7789V::fb_draw_bitmap(uint16_t x, uint16_t y, const uint8_t *bitmap, uint16_t w, uint16_t h, uint16_t color, uint16_t bg, bool has_bg) {
+void TFT7735V::fb_draw_bitmap(uint16_t x, uint16_t y, const uint8_t *bitmap, uint16_t w, uint16_t h, uint16_t color, uint16_t bg, bool has_bg) {
     if (current_framebuffer == nullptr || bitmap == nullptr) return;
     
     for (uint16_t row = 0; row < h; row++) {
@@ -1429,7 +1429,7 @@ void TFT7789V::fb_draw_bitmap(uint16_t x, uint16_t y, const uint8_t *bitmap, uin
     expand_dirty_rect(x, y, clipped_w, clipped_h);
 }
 
-void TFT7789V::fb_draw_rgb_bitmap(uint16_t x, uint16_t y, const uint16_t *bitmap, const uint8_t *mask, uint16_t w, uint16_t h, bool has_mask) {
+void TFT7735V::fb_draw_rgb_bitmap(uint16_t x, uint16_t y, const uint16_t *bitmap, const uint8_t *mask, uint16_t w, uint16_t h, bool has_mask) {
     if (current_framebuffer == nullptr || bitmap == nullptr) return;
     
     for (uint16_t row = 0; row < h; row++) {
@@ -1503,7 +1503,7 @@ void TFT7789V::fb_draw_char(uint16_t x, uint16_t y, unsigned char c, uint16_t co
 }
 
 // Double buffering methods
-bool TFT7789V::init_double_buffering() {
+bool TFT7735V::init_double_buffering() {
     if (sram_buffer_a != nullptr || sram_buffer_b != nullptr) {
         ESP_LOGW(TAG, "Double buffering already initialized");
         return true;
@@ -1579,7 +1579,7 @@ bool TFT7789V::init_double_buffering() {
     return true;
 }
 
-void TFT7789V::free_double_buffering() {
+void TFT7735V::free_double_buffering() {
     // Wait for any ongoing display operation to complete
     if (display_in_progress) {
         ESP_LOGI(TAG, "Waiting for display operation to complete before freeing buffers...");
@@ -1620,8 +1620,8 @@ void TFT7789V::free_double_buffering() {
 }
 
 // Display task function
-void TFT7789V::display_task(void* pvParameters) {
-    TFT7789V* tft = (TFT7789V*)pvParameters;
+void TFT7735V::display_task(void* pvParameters) {
+    TFT7735V* tft = (TFT7735V*)pvParameters;
     display_message_t msg;
     
     ESP_LOGI(TAG, "Display task started");
@@ -1698,7 +1698,7 @@ void TFT7789V::display_task(void* pvParameters) {
     }
 }
 
-void TFT7789V::copy_chunk_and_send(uint8_t chunk_idx, uint8_t source_buffer_idx) {
+void TFT7735V::copy_chunk_and_send(uint8_t chunk_idx, uint8_t source_buffer_idx) {
     if (!initialized) {
         return;
     }
@@ -1745,7 +1745,7 @@ void TFT7789V::copy_chunk_and_send(uint8_t chunk_idx, uint8_t source_buffer_idx)
     send_chunk_to_display(target_buffer, chunk_idx, actual_chunk_height);
 }
 
-void TFT7789V::send_chunk_to_display(uint16_t* buffer, uint16_t chunk_idx, uint16_t chunk_height) {
+void TFT7735V::send_chunk_to_display(uint16_t* buffer, uint16_t chunk_idx, uint16_t chunk_height) {
     if (!initialized || buffer == nullptr) {
         return;
     }
@@ -1793,11 +1793,11 @@ void TFT7789V::send_chunk_to_display(uint16_t* buffer, uint16_t chunk_idx, uint1
 }
 
 // Public methods for display status
-bool TFT7789V::displayDone() const {
+bool TFT7735V::displayDone() const {
     return display_done_flag;
 }
 
-void TFT7789V::waitForDisplayDone() {
+void TFT7735V::waitForDisplayDone() {
     if (display_done_semaphore != nullptr && display_in_progress) {
         ESP_LOGD(TAG, "Waiting for display operation to complete...");
         xSemaphoreTake(display_done_semaphore, portMAX_DELAY);
@@ -1805,7 +1805,7 @@ void TFT7789V::waitForDisplayDone() {
     }
 }
 
-void TFT7789V::swapBuffers() {
+void TFT7735V::swapBuffers() {
     if (!framebuffer_enabled) {
         ESP_LOGW(TAG, "Framebuffer not enabled");
         return;
@@ -1844,7 +1844,7 @@ void TFT7789V::swapBuffers() {
 }
 
 // Dirty rectangle optimization implementation
-void TFT7789V::enableDirtyRect(bool enable) {
+void TFT7735V::enableDirtyRect(bool enable) {
     dirty_rect_enabled = enable;
     if (enable) {
         // Clear dirty rect when enabling
@@ -1855,7 +1855,7 @@ void TFT7789V::enableDirtyRect(bool enable) {
     }
 }
 
-void TFT7789V::clearDirty() {
+void TFT7735V::clearDirty() {
     dirty_rect.valid = false;
     dirty_rect.x = 0;
     dirty_rect.y = 0;
@@ -1864,17 +1864,17 @@ void TFT7789V::clearDirty() {
     force_full_redraw = false;
 }
 
-void TFT7789V::forceFullRedraw() {
+void TFT7735V::forceFullRedraw() {
     force_full_redraw = true;
     dirty_rect.valid = false;  // Invalid dirty rect forces full redraw
     ESP_LOGI(TAG, "Full redraw forced");
 }
 
-bool TFT7789V::isDirtyRectEnabled() const {
+bool TFT7735V::isDirtyRectEnabled() const {
     return dirty_rect_enabled;
 }
 
-void TFT7789V::expand_dirty_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
+void TFT7735V::expand_dirty_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
     if (!dirty_rect_enabled) {
         return;
     }
@@ -1909,7 +1909,7 @@ void TFT7789V::expand_dirty_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
              dirty_rect.x, dirty_rect.y, dirty_rect.w, dirty_rect.h);
 }
 
-uint8_t TFT7789V::calculate_dirty_chunks(const dirty_rect_t& dirty_rect, uint8_t& start_chunk, uint8_t& end_chunk) {
+uint8_t TFT7735V::calculate_dirty_chunks(const dirty_rect_t& dirty_rect, uint8_t& start_chunk, uint8_t& end_chunk) {
     if (!dirty_rect.valid) {
         start_chunk = 0;
         end_chunk = total_chunks - 1;
@@ -1933,7 +1933,7 @@ uint8_t TFT7789V::calculate_dirty_chunks(const dirty_rect_t& dirty_rect, uint8_t
     return affected_chunks;
 }
 
-void TFT7789V::copy_dirty_chunk_and_send(uint8_t chunk_idx, uint8_t source_buffer_idx, const dirty_rect_t& dirty_rect) {
+void TFT7735V::copy_dirty_chunk_and_send(uint8_t chunk_idx, uint8_t source_buffer_idx, const dirty_rect_t& dirty_rect) {
     if (!initialized) {
         return;
     }
@@ -1995,7 +1995,7 @@ void TFT7789V::copy_dirty_chunk_and_send(uint8_t chunk_idx, uint8_t source_buffe
     send_dirty_chunk_to_display(target_buffer, chunk_idx, actual_chunk_height, dirty_rect);
 }
 
-void TFT7789V::send_dirty_chunk_to_display(uint16_t* buffer, uint16_t chunk_idx, uint16_t chunk_height, const dirty_rect_t& dirty_rect) {
+void TFT7735V::send_dirty_chunk_to_display(uint16_t* buffer, uint16_t chunk_idx, uint16_t chunk_height, const dirty_rect_t& dirty_rect) {
     if (!initialized || buffer == nullptr) {
         return;
     }

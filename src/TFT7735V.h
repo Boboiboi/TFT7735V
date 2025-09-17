@@ -1,5 +1,5 @@
-#ifndef TFT7789V_H
-#define TFT7789V_H
+#ifndef TFT7735V_H
+#define TFT7735V_H
 
 #include <driver/spi_master.h>
 #include <driver/gpio.h>
@@ -74,7 +74,7 @@ typedef struct {
 #define ST7735_MAGENTA     0xF81F
 #define ST7735_CYAN        0x07FF
 
-class TFT7789V {
+class TFT7735V {
 private:
     spi_device_handle_t spi_device;
     gpio_num_t cs_pin;
@@ -155,7 +155,7 @@ private:
 
 public:
     // Constructor with configurable pins
-    TFT7789V(gpio_num_t mosi = GPIO_NUM_11, 
+    TFT7735V(gpio_num_t mosi = GPIO_NUM_11, 
              gpio_num_t sclk = GPIO_NUM_12, 
              gpio_num_t cs = GPIO_NUM_10, 
              gpio_num_t dc = GPIO_NUM_9, 
@@ -163,7 +163,7 @@ public:
              gpio_num_t bl = GPIO_NUM_7);
     
     // Destructor
-    ~TFT7789V();
+    ~TFT7735V();
       // Initialization
     bool begin(uint32_t freq_hz = 40000000);
     void end();    // Framebuffer control (enabled by default)
@@ -276,4 +276,4 @@ private:
     bool text_has_bg;
 };
 
-#endif // TFT7789V_H
+#endif // TFT7735V_H
