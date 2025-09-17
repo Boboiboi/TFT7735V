@@ -1,1 +1,26 @@
-{"name":"TFT7735V","version":"0.1.0","description":"ST7735V 128x160 display driver with triple buffering and dirty rect.","keywords":"display,tft,st7735,spi,esp32,arduino","repository":{"type":"git","url":"https://github.com/Boboiboi/TFT7735V.git"},"authors":[{"name":"boboiboi","email":"2105120103@vaa.edu.vn"}],"frameworks":"arduino","platforms":"*","export":{"include":["src","README.md","library.properties","library.json"]}}
+{
+    "name": "TFT7735V",
+    "version": "0.1.0",
+    "description": "ST7735V 128x160 display driver with triple buffering and dirty rect.",
+    "keywords": "display,tft,st7735,spi,esp32,arduino",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Boboiboi/TFT7735V.git"
+    },
+    "authors": [
+        {
+            "name": "boboiboi",
+            "email": "2105120103@vaa.edu.vn"
+        }
+    ],
+    "frameworks": "arduino",
+    "platforms": "*",
+    "export": {
+        "include": [
+            "src",
+            "README.md",
+            "library.properties",
+            "library.json"
+        ]
+    }
+}

@@ -1458,7 +1458,7 @@ void TFT7735V::fb_draw_rgb_bitmap(uint16_t x, uint16_t y, const uint16_t *bitmap
     expand_dirty_rect(x, y, clipped_w, clipped_h);
 }
 
-void TFT7789V::fb_draw_char(uint16_t x, uint16_t y, unsigned char c, uint16_t color, uint16_t bg, uint8_t size, bool has_bg) {
+void TFT7735V::fb_draw_char(uint16_t x, uint16_t y, unsigned char c, uint16_t color, uint16_t bg, uint8_t size, bool has_bg) {
     if (current_framebuffer == nullptr) return;
     
     // Bounds checking
